@@ -1,0 +1,810 @@
+//게임이 끝나며 잠시 끝났다는 것을 알리기 위해 Sleep사용
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <time.h>
+
+#define lenmin 15 //길이 최대 최소
+#define lenmax 50
+#define hpmin 0 //마동석 체력
+#define hpmax 5
+#define probmin 10 // 확률 최대 최소
+#define probmax 90
+#define agromin 0 //어그로 범위
+#define agromax 5
+
+// 마동석이동방향
+#define left  1
+#define stay  0
+
+// 좀비의공격대상
+#define atk_none  0
+#define atk_c  1
+#define atk_m  2
+
+// 마동석행동
+#define rest  0
+#define provoke  1
+#define pull  2
+
+int mact[3] = { 0, 1, 2 };
+
+int main(void) {
+	srand((unsigned int)time(NULL));
+	printf("GAME START\n\n");
+	printf("좀비에게서 사람들을 탈출 시키세요!\n\n");
+
+	int len = 0; //길이
+	int prob = 0; //시민 확률
+	int mhp = 0; //마동석 체력
+
+	//길이 입력 후 범위에 맞는지 확인
+	while (1) {
+		printf("열차 길이(15~50)>>");
+		scanf_s("%d", &len);
+		if (lenmin <= len && len <= lenmax) {
+			printf("입력한 길이는 %d입니다.\n\n", len);
+			break;
+		}
+		else {
+			continue;
+		}
+	}
+
+	//마동석 체력
+	while (1) {
+		printf("마동석 체력>>");
+		scanf_s("%d", &mhp);
+		if (hpmin < mhp && mhp <= hpmax) {
+			printf("마동석의 체력은 %d입니다.\n\n", mhp);
+			break;
+		}
+		else {
+			continue;
+		}
+	}
+
+	//시민 확률
+	while (1) {
+		printf("시민이 움직일 확률,마동석의 붙잡기 성골률>>");
+		scanf_s("%d", &prob);
+		if (probmin <= prob && prob <= probmax) {
+			printf("시민이 움직일 확률은 %d입니다.\n마동석의 붙잡기 성공률은 %d입니다.\n\n", prob, prob);
+			break;
+		}
+		else {
+			continue;
+		}
+	}
+
+	int r = 0;
+	char chc = 'C';
+	char chz = 'Z';
+	char chm = 'M';
+	int c_pos = len - 5;
+	int z_pos = len - 2;
+	int m_pos = len - 1;
+
+	//1줄
+	printf("열차 상태\n");
+	for (int i = 0; i < len; i++) {
+		printf("#");
+	}
+	//2줄
+	if (c_pos >= 2) {
+		printf("\n#");
+		for (int i = 0; i < c_pos - 2; i++) {
+			printf(" ");
+		}
+		printf("%c", chc);
+		for (int i = 0; i < z_pos - c_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("%c", chz);
+		for (int i = 0; i < m_pos - z_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("%c", chm);
+		for (int i = 0; i < len - m_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("#\n");
+		//3줄
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+	}
+	else if (c_pos == 0) {
+		printf("\n#");
+		for (int i = 0; i < z_pos - c_pos - 2; i++) {
+			printf(" ");
+		}
+		printf("%c", chz);
+		for (int i = 0; i < m_pos - z_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("%c", chm);
+		for (int i = 0; i < len - m_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("#\n");
+		//3줄
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+	}
+	else {
+		printf("\n%c", chc);
+		for (int i = 0; i < z_pos - c_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("%c", chz);
+		for (int i = 0; i < m_pos - z_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("%c", chm);
+		for (int i = 0; i < len - m_pos - 1; i++) {
+			printf(" ");
+		}
+		printf("#\n");
+		//3줄
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+	}
+	printf("\n===============================\n");
+	printf("\n\n");
+	Sleep(4000);
+
+	int caggro = 0;
+	int maggro = 0;
+	int move;
+	int mact;
+
+	while (1) {
+		int cace = 0;
+		//1턴 이동
+		//시민 이동
+		int cprob1 = rand() % 101;
+		if (cprob1 <= prob) {
+			if (caggro == agromax) {
+				c_pos = c_pos - 1;
+				printf("사람:%d -> %d(어그로:%d)\n", c_pos + 1, c_pos, caggro);
+			}
+			else {
+				c_pos = c_pos - 1;
+				caggro = caggro + 1;
+				printf("사람:%d -> %d(어그로:%d -> %d)\n", c_pos + 1, c_pos, caggro - 1, caggro);
+			}
+		}
+		else {
+			if (caggro == agromin) {
+				printf("사람:stay %d(어그로:%d)\n", c_pos, caggro);
+			}
+			else {
+				caggro = caggro - 1;
+				printf("사람:stay %d(어그로:%d -> %d)\n", c_pos, caggro + 1, caggro);
+			}
+		}
+		//좀비 이동
+		if (caggro >= maggro) {
+			if (c_pos == z_pos - 1) {
+				printf("좀비가 사람에게 근접해 있습니다.");
+			}
+			else {
+				z_pos = z_pos - 1;
+				printf("좀비:%d -> %d\n", z_pos + 1, z_pos);
+			}
+		}
+		else if (cace == 1) {
+			printf("좀비:%d(좀비가 마동석에게 붙잡혔습니다.)\n", z_pos);
+		}
+		else {
+			if (m_pos == z_pos + 1) {
+				printf("좀비가 마동석에게 근접해 있습니다.");
+			}
+			else {
+				z_pos = z_pos + 1;
+				printf("좀비:%d -> %d\n", z_pos - 1, z_pos);
+			}
+		}
+		printf("\n");
+		//마동석 이동
+		while (1) {
+			if (m_pos - 1 > z_pos) {
+				printf("마동석 행동(대기:0, 왼쪽 이동:1):");
+				scanf_s("%d", &move);
+				switch (move) {
+				case (0):
+					if (maggro == 0) {
+						printf("마동석이 대기를 했습니다.(어그로:%d)\n", maggro);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						printf("마동석이 대기를 했습니다.(어그로:%d -> %d)\n", maggro + 1, maggro);
+						break;
+					}
+				case(1):
+					if (maggro == agromax) {
+						m_pos = m_pos - 1;
+						printf("마동석:%d -> %d(어그로:%d)\n", m_pos + 1, m_pos, maggro);
+						break;
+					}
+					else {
+						m_pos = m_pos - 1;
+						maggro = maggro + 1;
+						printf("마동석:%d -> %d(어그로:%d -> %d)\n", m_pos + 1, m_pos, maggro - 1, maggro);
+						break;
+					}
+				default:
+					continue;
+				}
+			}
+			else {
+				switch (move) {
+				case (0):
+					if (maggro == 0) {
+						printf("마동석이 대기를 했습니다.(어그로:%d)\n", maggro);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						printf("마동석이 대기를 했습니다.(어그로:%d -> %d)\n", maggro + 1, maggro);
+						break;
+					}
+				case (1):
+					printf("이동을 할 수가 없습니다.\n");
+					break;
+				}
+			}
+			break;
+		}
+		printf("\n");
+		//1줄
+		printf("열차 상태\n");
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+		//2줄
+		if (c_pos >= 2) {
+			printf("\n#");
+			for (int i = 0; i < c_pos - 2; i++) {
+				printf(" ");
+			}
+			printf("%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		else {
+			printf("\n%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		printf("\n===============================\n");
+		printf("\n");
+		//1턴 행동
+		//시민 행동
+		if (c_pos == 1) {
+			printf("GAME CLEAR\n무사히 탈출했습니다!");
+			Sleep(4000);
+			break;
+		}
+		//좀비행동 
+		if (z_pos == c_pos + 1) {
+			printf("좁비가 시민을 공격했습니다!\nGAME OVER...");
+			Sleep(4000);
+			break;
+		}
+		else if (m_pos - 1 == z_pos && z_pos == c_pos + 1) {
+			if (caggro >= maggro) {
+				printf("좁비가 시민을 공격했습니다!\nGAME OVER...sss");
+				Sleep(4000);
+				break;
+			}
+			else {
+				if (mhp == 1) {
+					printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\nGAME OVER...",mhp, mhp-1);
+					mhp = mhp - 1;
+					Sleep(4000);
+					break;
+				}
+				else {
+					printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\n", mhp, mhp-1);
+					mhp = mhp - 1;
+				}
+			}
+		}
+		else if (z_pos == m_pos - 1) {
+			if (mhp == 1) {
+				printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\nGAME OVER...", mhp, mhp-1);
+				mhp = mhp - 1;
+				break;
+			}
+			else {
+				printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\n", mhp, mhp-1);
+				mhp = mhp - 1;
+			}
+		}
+		printf("\n");
+		//마동석 행동
+		if (m_pos == z_pos + 1) {
+			printf("마동석 행동(휴식:0, 도발:1. 붙잡기:2):");
+			scanf_s("%d", &mact);
+			switch (mact) {
+			case (0):
+				if (maggro == 0) {
+					if (mhp == 5) {
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d)\n", maggro, mhp);
+						break;
+					}
+					else {
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d -> %d)\n", maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+				else {
+					if (mhp == 5) {
+						maggro = maggro - 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d)\n", maggro + 1, maggro, mhp);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d -> %d)\n", maggro + 1, maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+			case (1):
+				printf("마동석이 좀비를 도발했습니다.(어그로:%d -> %d)\n", maggro, agromax);
+				maggro = agromax;
+				break;
+			case (2):
+				printf("마동석이 좁비에게 붙잡기를 시도했습니다.\n");
+				int mprob = rand() % 101;
+				if (mprob <= prob) {
+					cace = 1;
+					maggro = maggro + 2;
+					mhp = mhp - 1;
+					printf("마동석이 붙잡기에 성공했습니다.(어그로:%d -> %d,체력:%d -> %d)\n1턴 동안 좀비의 움직임이 제한됩니다.\n", maggro - 2, maggro, mhp + 1, mhp);
+					break;
+				}
+				else {
+					cace = 2;
+					maggro = maggro + 2;
+					mhp = mhp - 1;
+					printf("마동석이 붙잡기에 실패했습니다.(어그로:%d -> %d,체력:%d -> %d)\n", maggro - 2, maggro, mhp + 1, mhp);
+					break;
+				}
+			}
+		}
+		else {
+			printf("마동석 행동(휴식:0, 도발:1):");
+			scanf_s("%d", &mact);
+			switch (mact) {
+			case (0):
+				if (maggro == 0) {
+					if (mhp == 5) {
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d)\n", maggro, mhp);
+						break;
+					}
+					else {
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d -> %d)\n", maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+				else {
+					if (mhp == 5) {
+						maggro = maggro - 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d)\n", maggro + 1, maggro, mhp);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d -> %d)\n", maggro + 1, maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+			case (1):
+				printf("마동석이 좀비를 도발했습니다.(어그로:%d -> %d)\n", maggro, agromax);
+				maggro = agromax;
+				break;
+			}
+		}
+		printf("\n");
+		//1줄
+		printf("열차 상태\n");
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+		//2줄
+		if (c_pos >= 2) {
+			printf("\n#");
+			for (int i = 0; i < c_pos - 2; i++) {
+				printf(" ");
+			}
+			printf("%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		else {
+			printf("\n%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		printf("\n===============================\n");
+		printf("\n");
+		//2턴 이동
+		//시민 이동
+		int cprob2 = rand() % 101;
+		if (cprob2 <= prob) {
+			if (caggro == agromax) {
+				c_pos = c_pos - 1;
+				printf("사람:%d -> %d(어그로:%d)\n", c_pos + 1, c_pos, caggro);
+			}
+			else {
+				c_pos = c_pos - 1;
+				caggro = caggro + 1;
+				printf("사람:%d -> %d(어그로:%d -> %d)\n", c_pos + 1, c_pos, caggro - 1, caggro);
+			}
+		}
+		else {
+			if (caggro == agromin) {
+				printf("사람:stay %d(어그로:%d)\n", c_pos, caggro);
+			}
+			else {
+				caggro = caggro - 1;
+				printf("사람:stay %d(어그로:%d -> %d)\n", c_pos, caggro + 1, caggro);
+			}
+		}
+		//좀비 이동
+		printf("좀비는 움직이지 못합니다.\n\n");
+		//마동석 이동
+		while (1) {
+			if (m_pos - 1 > z_pos) {
+				printf("마동석 행동(대기:0, 왼쪽 이동:1):");
+				scanf_s("%d", &move);
+				switch (move) {
+				case (0):
+					if (maggro == 0) {
+						printf("마동석이 대기를 했습니다.(어그로:%d)\n", maggro);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						printf("마동석이 대기를 했습니다.(어그로:%d -> %d)\n", maggro + 1, maggro);
+						break;
+					}
+				case(1):
+					if (maggro == agromax) {
+						m_pos = m_pos - 1;
+						printf("마동석:%d -> %d(어그로:%d)\n", m_pos + 1, m_pos, maggro);
+						break;
+					}
+					else {
+						m_pos = m_pos - 1;
+						maggro = maggro + 1;
+						printf("마동석:%d -> %d(어그로:%d -> %d)\n", m_pos + 1, m_pos, maggro - 1, maggro);
+						break;
+					}
+				default:
+					continue;
+				}
+			}
+			else {
+				switch (move) {
+				case (0):
+					if (maggro == 0) {
+						printf("마동석이 대기를 했습니다.(어그로:%d)\n", maggro);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						printf("마동석이 대기를 했습니다.(어그로:%d -> %d)\n", maggro + 1, maggro);
+						break;
+					}
+				case (1):
+					printf("이동을 할 수가 없습니다.\n");
+					break;
+				}
+			}
+			break;
+		}
+		printf("\n");
+		//1줄
+		printf("열차 상태\n");
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+		//2줄
+		if (c_pos >= 2) {
+			printf("\n#");
+			for (int i = 0; i < c_pos - 2; i++) {
+				printf(" ");
+			}
+			printf("%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		else {
+			printf("\n%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		printf("\n===============================\n");
+		printf("\n");
+		//2턴 행동
+		//시민 행동
+		if (c_pos == 1) {
+			printf("GAME CLEAR\n무사히 탈출했습니다!");
+			Sleep(4000);
+			break;
+		}
+		//좀비행동 
+		if (z_pos == c_pos + 1) {
+			printf("좁비가 시민을 공격했습니다!\nGAME OVER...");
+			Sleep(4000);
+			break;
+		}
+		else if (m_pos - 1 == z_pos && z_pos == c_pos + 1) {
+			if (caggro >= maggro) {
+				printf("좁비가 시민을 공격했습니다!\nGAME OVER...sss");
+				Sleep(4000);
+				break;
+			}
+			else {
+				if (mhp == 1) {
+					printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\nGAME OVER...", mhp, mhp - 1);
+					mhp = mhp - 1;
+					Sleep(4000);
+					break;
+				}
+				else {
+					printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\n", mhp, mhp - 1);
+					mhp = mhp - 1;
+				}
+			}
+		}
+		else if (z_pos == m_pos - 1) {
+			if (mhp == 1) {
+				printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\nGAME OVER...", mhp, mhp - 1);
+				mhp = mhp - 1;
+				break;
+			}
+			else {
+				printf("좁비가 마동석을 공격했습니다!(마동석 체력:%d -> %d)\n", mhp, mhp - 1);
+				mhp = mhp - 1;
+			}
+		}
+		printf("\n");
+		//마동석 행동
+		if (m_pos == z_pos + 1) {
+			printf("마동석 행동(휴식:0, 도발:1. 붙잡기:2):");
+			scanf_s("%d", &mact);
+			switch (mact) {
+			case (0):
+				if (maggro == 0) {
+					if (mhp == 5) {
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d)\n", maggro, mhp);
+						break;
+					}
+					else {
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d -> %d)\n", maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+				else {
+					if (mhp == 5) {
+						maggro = maggro - 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d)\n", maggro + 1, maggro, mhp);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d -> %d)\n", maggro + 1, maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+			case (1):
+				printf("마동석이 좀비를 도발했습니다.(어그로:%d -> %d)\n", maggro, agromax);
+				maggro = agromax;
+				break;
+			case (2):
+				printf("마동석이 좁비에게 붙잡기를 시도했습니다.\n");
+				int mprob = rand() % 101;
+				if (mprob <= prob) {
+					cace = 1;
+					maggro = maggro + 2;
+					mhp = mhp - 1;
+					printf("마동석이 붙잡기에 성공했습니다.(어그로:%d -> %d,체력:%d -> %d)\n1턴 동안 좀비의 움직임이 제한됩니다.\n", maggro - 2, maggro, mhp + 1, mhp);
+					break;
+				}
+				else {
+					cace = 2;
+					maggro = maggro + 2;
+					mhp = mhp - 1;
+					printf("마동석이 붙잡기에 실패했습니다.(어그로:%d -> %d,체력:%d -> %d)\n", maggro - 2, maggro, mhp + 1, mhp);
+					break;
+				}
+			}
+		}
+		else {
+			printf("마동석 행동(휴식:0, 도발:1):");
+			scanf_s("%d", &mact);
+			switch (mact) {
+			case (0):
+				if (maggro == 0) {
+					if (mhp == 5) {
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d)\n", maggro, mhp);
+						break;
+					}
+					else {
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d, 체력:%d -> %d)\n", maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+				else {
+					if (mhp == 5) {
+						maggro = maggro - 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d)\n", maggro + 1, maggro, mhp);
+						break;
+					}
+					else {
+						maggro = maggro - 1;
+						mhp = mhp + 1;
+						printf("마동석이 휴식을 취했습니다.(어그로:%d -> %d, 체력:%d -> %d)\n", maggro + 1, maggro, mhp - 1, mhp);
+						break;
+					}
+				}
+			case (1):
+				printf("마동석이 좀비를 도발했습니다.(어그로:%d -> %d)\n", maggro, agromax);
+				maggro = agromax;
+				break;
+			}
+		}
+		printf("\n");
+		//1줄
+		printf("열차 상태\n");
+		for (int i = 0; i < len; i++) {
+			printf("#");
+		}
+		//2줄
+		if (c_pos >= 2) {
+			printf("\n#");
+			for (int i = 0; i < c_pos - 2; i++) {
+				printf(" ");
+			}
+			printf("%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		else {
+			printf("\n%c", chc);
+			for (int i = 0; i < z_pos - c_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chz);
+			for (int i = 0; i < m_pos - z_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("%c", chm);
+			for (int i = 0; i < len - m_pos - 1; i++) {
+				printf(" ");
+			}
+			printf("#\n");
+			//3줄
+			for (int i = 0; i < len; i++) {
+				printf("#");
+			}
+		}
+		printf("\n===============================\n");
+		printf("\n");
+
+
+	}
+}
